@@ -1,5 +1,5 @@
 #include "shader_manager.h"
-
+#include "shadertoy_utils.h"
 
 ShaderManager::ShaderManager() : programID(0) {
 }
@@ -8,42 +8,6 @@ ShaderManager::~ShaderManager() {
     if (programID != 0) {
         glDeleteProgram(programID);
     }
-}
-
-bool ShaderManager::loadFromFiles(const std::string& vertexPath, const std::string& fragmentPath) {
-    // Read vertex shader code from file
-    std::string vertexCode;
-    std::ifstream vShaderFile;
-    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    
-    try {
-        vShaderFile.open(vertexPath);
-        std::stringstream vShaderStream;
-        vShaderStream << vShaderFile.rdbuf();
-        vShaderFile.close();
-        vertexCode = vShaderStream.str();
-    } catch (std::ifstream::failure& e) {
-        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << vertexPath << std::endl;
-        return false;
-    }
-    
-    // Read fragment shader code from file
-    std::string fragmentCode;
-    std::ifstream fShaderFile;
-    fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    
-    try {
-        fShaderFile.open(fragmentPath);
-        std::stringstream fShaderStream;
-        fShaderStream << fShaderFile.rdbuf();
-        fShaderFile.close();
-        fragmentCode = fShaderStream.str();
-    } catch (std::ifstream::failure& e) {
-        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << fragmentPath << std::endl;
-        return false;
-    }
-    
-    return loadFromStrings(vertexCode, fragmentCode);
 }
 
 bool ShaderManager::loadFromStrings(const std::string& vertexSource, const std::string& fragmentSource) {
@@ -137,10 +101,6 @@ void ShaderManager::setupShaderToyUniforms(int windowWidth, int windowHeight, fl
     } else {
         setVec4("iMouse", mx, my, 0.0f, 0.0f);
     }
-    
-    // Additional ShaderToy uniforms could be added here
-    // setVec4("iDate", year, month, day, seconds);
-    // setFloat("iSampleRate", 44100.0f);
 }
 
 bool ShaderManager::checkCompileErrors(GLuint shader, const std::string& type) {

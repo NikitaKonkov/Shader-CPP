@@ -11,14 +11,13 @@
 #include <sstream>
 #include <vector>
 
+
+
 class ShaderManager {
 public:
     // Constructor and destructor
     ShaderManager();
     ~ShaderManager();
-    
-    // Load shaders from files
-    bool loadFromFiles(const std::string& vertexPath, const std::string& fragmentPath);
     
     // Load shaders from strings
     bool loadFromStrings(const std::string& vertexSource, const std::string& fragmentSource);
