@@ -1,53 +1,49 @@
 #include "shader_manager.h"
 #include "shadertoy_utils.h"
+#include "shader_loader.h"
 
 // Window dimensions
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 600;
+const int WINDOW_WIDTH = 1920;
+const int WINDOW_HEIGHT = 1080;
 
-// ShaderToy fragment shader code
-const std::string shaderToyCode = R"(
-float segment(vec2 p, vec2 a, vec2 b) {
-    p -= a;
-    b -= a;
-    return length(p - b * clamp(dot(p, b) / dot(b, b), 0., 1.));
-}
+// Number of shaders
+const int NUM_SHADERS = 10;
 
-#define rot(a) mat2(cos(a+vec4(0,1.57,-1.57,0)))
+// Shader names for console output - IMPORTANT: Make sure this matches NUM_SHADERS!
+const std::vector<std::string> SHADER_NAMES = {
+    "cubes",
+    "particles",
+    "oldschool tube",
+    "shader 4",
+    "shader 5",
+    "shader 6",
+    "shader 7",
+    "shader 8",
+    "shader 9",
+    "shader 10"
+};
 
-float t;
-vec2 T(vec3 p) {
-    p.xy *= rot(-t);
-    p.xz *= rot(.785);
-    p.yz *= rot(-.625);
-    return p.xy;
-}
-
-void mainImage(out vec4 O, vec2 u) {
-    vec2 R = iResolution.xy, X,
-    U = 10. * u / R.y,
-    M = vec2(2,2.3),
-    I = floor(U/M)*M, J;
-    U = mod(U, M);
-    O *= 0.;
-    for (int k=0; k<4; k++) {
-        X = vec2(k%2,k/2)*M;
-        J = I+X;
-        if (int(J/M)%2 > 0) X.y += 1.15;
-        t = tanh(-.2*(J.x+J.y) + mod(2.*iTime,10.) -1.6)*.785;
-        for (float a=0; a < 6.; a += 1.57) {
-            vec3 A = vec3(cos(a),sin(a),.7),
-            B = vec3(-A.y,A.x,.7);
-            #define L(A,B) O += smoothstep(15./R.y, 0., segment(U-X, T(A), T(B)))
-            L(A,B);
-            L(A,A*vec3(1,1,-1));
-            A.z=-A.z; B.z=-B.z; L(A,B);
-        }
+// Function to get key name for display
+std::string getKeyName(int shaderIndex) {
+    if (shaderIndex < 9) {
+        // Use number keys 1-9 for first 9 shaders
+        return std::to_string(shaderIndex + 1);
+    } else {
+        // Use letter keys A-Z for shaders 10 and beyond
+        // A = shader 10, B = shader 11, etc.
+        char letter = 'A' + (shaderIndex - 9);
+        return std::string(1, letter);
     }
 }
-)";
 
 int main(int argc, char* argv[]) {
+    // Validate shader configuration
+    if (SHADER_NAMES.size() != NUM_SHADERS) {
+        std::cerr << "ERROR: Number of shader names (" << SHADER_NAMES.size()
+                  << ") doesn't match NUM_SHADERS (" << NUM_SHADERS << ")" << std::endl;
+        return 1;
+    }
+
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
@@ -94,20 +90,44 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Create shader manager
-    ShaderManager shaderManager;
-    
-    // Create ShaderToy fragment shader
-    std::string fragmentShaderSource = createShaderToyFragmentShader(shaderToyCode);
-    
-    // Load shaders
-    if (!shaderManager.loadFromStrings(defaultVertexShader, fragmentShaderSource)) {
-        std::cerr << "Failed to load shaders!" << std::endl;
-        SDL_GL_DeleteContext(glContext);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
+    // Print key mapping information
+    std::cout << "Shader Key Mappings:" << std::endl;
+    for (int i = 0; i < NUM_SHADERS; i++) {
+        std::cout << "  " << getKeyName(i) << " -> " << SHADER_NAMES[i] << std::endl;
     }
+    
+    // Load shader code from files
+    std::vector<std::string> shaderCodes;
+    for (int i = 1; i <= NUM_SHADERS; i++) {
+        std::string shaderPath = "shaders/shader" + std::to_string(i) + ".glsl";
+        std::cout << "Loading shader from: " << shaderPath << std::endl;
+        
+        std::string code = loadShaderFromFile(shaderPath);
+        if (code.empty()) {
+            std::cerr << "Failed to load shader" << i << ".glsl!" << std::endl;
+            SDL_GL_DeleteContext(glContext);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+        }
+        shaderCodes.push_back(code);
+    }
+    
+    // Create shader managers and compile shaders
+    std::vector<ShaderManager> shaderManagers(NUM_SHADERS);
+    for (int i = 0; i < NUM_SHADERS; i++) {
+        std::cout << "Compiling shader " << (i+1) << "..." << std::endl;
+        std::string fragmentShaderSource = createShaderToyFragmentShader(shaderCodes[i]);
+        if (!shaderManagers[i].loadFromStrings(defaultVertexShader, fragmentShaderSource)) {
+            std::cerr << "Failed to load shader " << (i+1) << "!" << std::endl;
+            SDL_GL_DeleteContext(glContext);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+        }
+    }
+    
+    std::cout << "All " << NUM_SHADERS << " shaders compiled successfully!" << std::endl;
     
     // Create full-screen quad
     GLuint quadVAO = createFullScreenQuad();
@@ -126,6 +146,10 @@ int main(int argc, char* argv[]) {
     int mouseX = 0, mouseY = 0;
     bool mouseDown = false;
     
+    // Active shader (0-based index)
+    int activeShader = 0;
+    std::cout << "Starting with shader 1 (" << SHADER_NAMES[activeShader] << ")" << std::endl;
+    
     // Main loop
     while (!quit) {
         // Handle events
@@ -136,6 +160,24 @@ int main(int argc, char* argv[]) {
             else if (e.type == SDL_KEYDOWN) {
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
                     quit = true;
+                }
+                // Handle shader switching with number keys (1-9)
+                else if (e.key.keysym.sym >= SDLK_1 && e.key.keysym.sym <= SDLK_9) {
+                    int newShader = e.key.keysym.sym - SDLK_1;
+                    if (newShader < NUM_SHADERS) {
+                        activeShader = newShader;
+                        std::cout << "Switched to shader " << getKeyName(activeShader)
+                                  << " (" << SHADER_NAMES[activeShader] << ")" << std::endl;
+                    }
+                }
+                // Handle shader switching with letter keys (A-Z for shaders 10-35)
+                else if (e.key.keysym.sym >= SDLK_a && e.key.keysym.sym <= SDLK_z) {
+                    int newShader = (e.key.keysym.sym - SDLK_a) + 9; // A = shader 10, B = shader 11, etc.
+                    if (newShader < NUM_SHADERS) {
+                        activeShader = newShader;
+                        std::cout << "Switched to shader " << getKeyName(activeShader)
+                                  << " (" << SHADER_NAMES[activeShader] << ")" << std::endl;
+                    }
                 }
             }
             else if (e.type == SDL_MOUSEMOTION) {
@@ -164,9 +206,13 @@ int main(int argc, char* argv[]) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        // Use shader and set uniforms
-        shaderManager.use();
-        shaderManager.setupShaderToyUniforms(WINDOW_WIDTH, WINDOW_HEIGHT, time, deltaTime, frame, mouseX, mouseY, mouseDown);
+        // Use the active shader and set uniforms
+        if (activeShader >= 0 && activeShader < NUM_SHADERS) {
+            shaderManagers[activeShader].use();
+            shaderManagers[activeShader].setupShaderToyUniforms(
+                WINDOW_WIDTH, WINDOW_HEIGHT, time, deltaTime, frame, mouseX, mouseY, mouseDown
+            );
+        }
         
         // Draw the quad
         glBindVertexArray(quadVAO);
