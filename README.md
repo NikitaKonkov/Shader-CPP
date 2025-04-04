@@ -1,3 +1,3 @@
-goto build/
-run . build.sh
-:)
+- goto build/
+- run . build.sh
+# :)
