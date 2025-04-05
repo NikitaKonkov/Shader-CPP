@@ -3,11 +3,11 @@
 #include "shader_loader.h"
 
 // Window dimensions
-const int WINDOW_WIDTH = 1920;
-const int WINDOW_HEIGHT = 1080;
+const int WINDOW_WIDTH = 1440;
+const int WINDOW_HEIGHT = 720;
 
 // Number of shaders
-const int NUM_SHADERS = 10;
+const int NUM_SHADERS = 11;
 
 // Shader names for console output - IMPORTANT: Make sure this matches NUM_SHADERS!
 const std::vector<std::string> SHADER_NAMES = {
@@ -20,7 +20,8 @@ const std::vector<std::string> SHADER_NAMES = {
     "shader 7",
     "shader 8",
     "shader 9",
-    "shader 10"
+    "shader 10",
+    "shader 11"
 };
 
 // Function to get key name for display
