@@ -4,6 +4,13 @@
 #include "includes.h"
 
 
+// Default vertex shader for ShaderToy-style rendering
+extern const char* defaultVertexShader;
+
+// Create a ShaderToy-compatible fragment shader
+std::string createShaderToyFragmentShader(const std::string& shaderToyCode);
+
+
 
 class ShaderManager {
 public:

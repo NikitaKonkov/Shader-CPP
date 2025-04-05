@@ -1,5 +1,4 @@
 #include "../include/shader_manager.h"
-#include "../include/shadertoy_utils.h"
 #include "../include/includes.h"
 
 // Function to load shader code from a file
