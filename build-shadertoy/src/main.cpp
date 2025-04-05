@@ -1,6 +1,6 @@
-#include "shader_manager.h"
-#include "shadertoy_utils.h"
-#include "shader_loader.h"
+#include "../include/shader_manager.h"
+#include "../include/shadertoy_utils.h"
+#include "../include/shader_loader.h"
 
 // Window dimensions
 const int WINDOW_WIDTH = 1440;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     // Load shader code from files
     std::vector<std::string> shaderCodes;
     for (int i = 1; i <= NUM_SHADERS; i++) {
-        std::string shaderPath = "shaders/shader" + std::to_string(i) + ".glsl";
+        std::string shaderPath = "../shaders/shader" + std::to_string(i) + ".glsl";
         std::cout << "Loading shader from: " << shaderPath << std::endl;
         
         std::string code = loadShaderFromFile(shaderPath);

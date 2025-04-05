@@ -1,4 +1,4 @@
-#include "shadertoy_utils.h"
+#include "../include/shadertoy_utils.h"
 
 // Default vertex shader for ShaderToy-style rendering
 const char* defaultVertexShader = R"(

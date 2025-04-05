@@ -1,5 +1,5 @@
-#include "shader_manager.h"
-#include "shadertoy_utils.h"
+#include "../include/shader_manager.h"
+#include "../include/shadertoy_utils.h"
 
 ShaderManager::ShaderManager() : programID(0) {
 }

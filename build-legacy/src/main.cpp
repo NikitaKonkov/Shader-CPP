@@ -1,6 +1,15 @@
 #include "../include/includes.h"
 #include "../include/utils.h"
 
+// Function to load and compile shaders
+GLuint loadShaders(const std::string& vertexPath, const std::string& fragmentPath) {
+    GLuint shaderProgram = createShaderProgram(vertexPath, fragmentPath);
+    if (shaderProgram == 0) {
+        std::cerr << "Failed to create shader program!" << std::endl;
+    }
+    return shaderProgram;
+}
+
 int main(int argc, char* argv[]) {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -51,11 +60,9 @@ int main(int argc, char* argv[]) {
     // Print OpenGL version
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
     
-    // Create shader program from files
-
-    GLuint shaderProgram = createShaderProgram("shaders/shader1/vertex.glsl", "shaders/shader1/fragment.glsl");
+    // Load initial shader program
+    GLuint shaderProgram = loadShaders("shaders/shader1/vertex.glsl", "shaders/shader1/fragment.glsl");
     if (shaderProgram == 0) {
-        std::cerr << "Failed to create shader program!" << std::endl;
         SDL_GL_DeleteContext(glContext);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -123,6 +130,16 @@ int main(int argc, char* argv[]) {
             else if (e.type == SDL_KEYDOWN) {
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
                     quit = true;
+                }
+                else if (e.key.keysym.sym == SDLK_1) {
+                    // Switch to shader 1
+                    glDeleteProgram(shaderProgram);
+                    shaderProgram = loadShaders("shaders/shader1/vertex.glsl", "shaders/shader1/fragment.glsl");
+                }
+                else if (e.key.keysym.sym == SDLK_2) {
+                    // Switch to shader 2
+                    glDeleteProgram(shaderProgram);
+                    shaderProgram = loadShaders("shaders/shader2/vertex.glsl", "shaders/shader2/fragment.glsl");
                 }
             }
         }

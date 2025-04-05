@@ -1,4 +1,4 @@
-#include "shader_manager.h"
+#include "../include/shader_manager.h"
 
 
 // Default vertex shader for ShaderToy-style rendering
