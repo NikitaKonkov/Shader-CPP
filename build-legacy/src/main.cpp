@@ -1,5 +1,5 @@
-#include "../include/gl_includes.h"
-#include "../include/shader_utils.h"
+#include "../include/includes.h"
+#include "../include/utils.h"
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     
     // Create shader program from files
 
-    GLuint shaderProgram = createShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
+    GLuint shaderProgram = createShaderProgram("shaders/shader1/vertex.glsl", "shaders/shader1/fragment.glsl");
     if (shaderProgram == 0) {
         std::cerr << "Failed to create shader program!" << std::endl;
         SDL_GL_DeleteContext(glContext);

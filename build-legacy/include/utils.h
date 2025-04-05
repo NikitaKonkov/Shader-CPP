@@ -1,7 +1,7 @@
-#ifndef SHADER_UTILS_H
-#define SHADER_UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
-#include "gl_includes.h"
+#include "includes.h"
 
 // Add these includes at the top of shader_utils.h
 #ifdef _WIN32

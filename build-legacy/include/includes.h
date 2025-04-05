@@ -1,5 +1,5 @@
-#ifndef GL_INCLUDES_H
-#define GL_INCLUDES_H
+#ifndef INCLUDES_H
+#define INCLUDES_H
 
 // imports blyat 
 #include "..\..\SDL\SDL.h"
