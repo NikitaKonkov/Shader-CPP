@@ -11,7 +11,6 @@ g++ -o legacy_shader src/main.cpp \
 # Check if compilation was successful
 if [ $? -eq 0 ]; then
     echo "Compilation successful!"
-    echo "Make sure the 'shaders' directory is in the same directory as the executable."
     echo "Running the program..."
     ./legacy_shader
 else
