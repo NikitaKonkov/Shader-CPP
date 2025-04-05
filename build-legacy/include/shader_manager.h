@@ -4,9 +4,9 @@
 #include "../include/includes.h"
 #include "../include/utils.h"
 
-// Window dimensions
-const int WINDOW_WIDTH = 1024;
-const int WINDOW_HEIGHT = 1024;
+// Window dimensions - changed to variables instead of constants
+int WINDOW_WIDTH = 1024;
+int WINDOW_HEIGHT = 1024;
 
 // Default texture path
 std::string texturePath = "textures/stone.png";
@@ -15,6 +15,16 @@ std::string texturePath = "textures/stone.png";
 std::string currentVertexPath = "shaders/shader1/vertex.glsl";
 std::string currentFragmentPath = "shaders/shader1/fragment.glsl";
 
+// Function to handle window resize
+void handleResize(int width, int height) {
+    WINDOW_WIDTH = width;
+    WINDOW_HEIGHT = height;
+    
+    // Update the OpenGL viewport to match the new window size
+    glViewport(0, 0, width, height);
+    
+    std::cout << "Window resized to: " << width << "x" << height << std::endl;
+}
 
 // Function to load and compile shaders
 GLuint loadShaders(const std::string& vertexPath, const std::string& fragmentPath) {
@@ -93,7 +103,6 @@ GLuint loadTexture(const std::string& path) {
     return textureID;
 }
 
-
 int drawer(int argc, char* argv[]) {
     // Check if texture path is provided as command-line argument
     if (argc > 1) {
@@ -115,12 +124,12 @@ int drawer(int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     
-    // Create window
+    // Create window with resizable flag
     SDL_Window* window = SDL_CreateWindow(
         "Legacy GLSL Shader Demo",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         WINDOW_WIDTH, WINDOW_HEIGHT,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
     
     if (!window) {
@@ -219,6 +228,9 @@ int drawer(int argc, char* argv[]) {
     GLint millisLoc = glGetUniformLocation(shaderProgram, "millis");
     GLint backgroundLoc = glGetUniformLocation(shaderProgram, "background");
     
+    // Initialize viewport
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    
     // Main loop flag
     bool quit = false;
     SDL_Event e;
@@ -258,25 +270,27 @@ int drawer(int argc, char* argv[]) {
                 else if (e.key.keysym.sym == SDLK_r) {
                     // Reload current shader
                     shaderProgram = reloadCurrentShader(shaderProgram);
-                    
                     // Update attribute and uniform locations after reload
                     posAttrib = glGetAttribLocation(shaderProgram, "aPosition");
                     texAttrib = glGetAttribLocation(shaderProgram, "aTexCoord");
                     millisLoc = glGetUniformLocation(shaderProgram, "millis");
                     backgroundLoc = glGetUniformLocation(shaderProgram, "background");
-                    
                     // Rebind VAO
                     glBindVertexArray(VAO);
-                    
                     // Update vertex attribute pointers
                     glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
                     glEnableVertexAttribArray(posAttrib);
-                    
                     glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
                     glEnableVertexAttribArray(texAttrib);
-                    
                     // Unbind VAO
                     glBindVertexArray(0);
+                }
+            }
+            // Handle window resize event
+            else if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                    // Handle window resize
+                    handleResize(e.window.data1, e.window.data2);
                 }
             }
         }
