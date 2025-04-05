@@ -1,17 +1,18 @@
 #!/bin/bash
 
-#!/bin/bash
+# Create directories if they don't exist
+mkdir -p build
 
 # Compile the program
-g++ -o legacy_shader main.cpp \
-    -I/ucrt64/include/SDL2 \
-    -L/ucrt64/lib \
+g++ -o legacy_shader src/main.cpp \
+    -I./include \
     -lmingw32 -lSDL2main -lSDL2 -lglew32 -lopengl32
 
-sleep 0.5
 # Check if compilation was successful
 if [ $? -eq 0 ]; then
-    echo "Compilation successful! Running the program..."
+    echo "Compilation successful!"
+    echo "Make sure the 'shaders' directory is in the same directory as the executable."
+    echo "Running the program..."
     ./legacy_shader
 else
     echo "Compilation failed."

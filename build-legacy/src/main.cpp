@@ -1,50 +1,5 @@
-#include "..\SDL\include\SDL.h"
-#include "..\GL\glew.h"
-#include <iostream>
-#include <string>
-
-// Vertex shader using legacy GLSL syntax
-const char* vertexShaderSource = R"(
-attribute vec3 aPosition;
-attribute vec2 aTexCoord;
-varying vec2 pos;
-void main(){
-    pos = aTexCoord;
-    vec4 position = vec4(aPosition, 1.0);
-    position.xy = position.xy * 2.0 - 1.0;
-    gl_Position = position;
-}
-)";
-
-// Simple fragment shader that uses the varying variable from vertex shader
-const char* fragmentShaderSource = R"(
-varying vec2 pos;
-void main() {
-    gl_FragColor = vec4(pos.x, pos.y, 0.5, 1.0);
-}
-)";
-
-// Function to check shader compilation/linking errors
-void checkShaderError(GLuint shader, const std::string& type) {
-    GLint success;
-    GLchar infoLog[1024];
-    
-    if (type != "PROGRAM") {
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-        if (!success) {
-            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-            std::cerr << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" 
-                      << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-        }
-    } else {
-        glGetProgramiv(shader, GL_LINK_STATUS, &success);
-        if (!success) {
-            glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-            std::cerr << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" 
-                      << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-        }
-    }
-}
+#include "../include/gl_includes.h"
+#include "../include/shader_utils.h"
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -96,28 +51,16 @@ int main(int argc, char* argv[]) {
     // Print OpenGL version
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
     
-    // Create and compile vertex shader
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    checkShaderError(vertexShader, "VERTEX");
-    
-    // Create and compile fragment shader
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    checkShaderError(fragmentShader, "FRAGMENT");
-    
-    // Create shader program and link shaders
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    checkShaderError(shaderProgram, "PROGRAM");
-    
-    // Delete shaders as they're linked into the program and no longer needed
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    // Create shader program from files
+
+    GLuint shaderProgram = createShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
+    if (shaderProgram == 0) {
+        std::cerr << "Failed to create shader program!" << std::endl;
+        SDL_GL_DeleteContext(glContext);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
     
     // Set up vertex data (a quad made of two triangles)
     float vertices[] = {
