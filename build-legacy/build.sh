@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Create directories if they don't exist
-mkdir -p build
-
 # Compile the program
 g++ -o legacy_shader src/main.cpp \
     -I./include \

@@ -1,9 +1,9 @@
 #ifndef SHADER_MANAGER_H
 #define SHADER_MANAGER_H
 
-#include "..\SDL\include\SDL.h"
+#include "..\SDL\SDL.h"
 #include "..\GL\glew.h"
-#include "..\SDL\include\SDL_opengl.h"
+#include "..\SDL\SDL_opengl.h"
 #include <iostream>
 #include <string>
 #include <iostream>
