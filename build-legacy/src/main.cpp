@@ -1,13 +1,45 @@
 #include "../include/includes.h"
 #include "../include/utils.h"
 
+// Window dimensions
+const int WINDOW_WIDTH = 600;
+const int WINDOW_HEIGHT = 600;
+
+// Current shader paths
+std::string currentVertexPath = "shaders/shader1/vertex.glsl";
+std::string currentFragmentPath = "shaders/shader1/fragment.glsl";
+
 // Function to load and compile shaders
 GLuint loadShaders(const std::string& vertexPath, const std::string& fragmentPath) {
     GLuint shaderProgram = createShaderProgram(vertexPath, fragmentPath);
     if (shaderProgram == 0) {
         std::cerr << "Failed to create shader program!" << std::endl;
+    } else {
+        std::cout << "Shader program created successfully!" << std::endl;
     }
     return shaderProgram;
+}
+
+// Function to reload the current shader
+GLuint reloadCurrentShader(GLuint currentProgram) {
+    // Delete the current program
+    if (currentProgram != 0) {
+        glDeleteProgram(currentProgram);
+    }
+    
+    // Load and compile the updated shader
+    std::cout << "Reloading shaders from: " << currentVertexPath << " and " << currentFragmentPath << std::endl;
+    GLuint newProgram = loadShaders(currentVertexPath, currentFragmentPath);
+    
+    if (newProgram == 0) {
+        std::cerr << "Shader reload failed! Keeping previous shader." << std::endl;
+        // If reload fails, try to recreate the original shader
+        newProgram = loadShaders(currentVertexPath, currentFragmentPath);
+    } else {
+        std::cout << "Shader reloaded successfully!" << std::endl;
+    }
+    
+    return newProgram;
 }
 
 int main(int argc, char* argv[]) {
@@ -27,7 +59,7 @@ int main(int argc, char* argv[]) {
     SDL_Window* window = SDL_CreateWindow(
         "Legacy GLSL Shader Demo",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        800, 600,
+        WINDOW_WIDTH, WINDOW_HEIGHT,
         SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
     );
     
@@ -61,7 +93,7 @@ int main(int argc, char* argv[]) {
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
     
     // Load initial shader program
-    GLuint shaderProgram = loadShaders("shaders/shader1/vertex.glsl", "shaders/shader1/fragment.glsl");
+    GLuint shaderProgram = loadShaders(currentVertexPath, currentFragmentPath);
     if (shaderProgram == 0) {
         SDL_GL_DeleteContext(glContext);
         SDL_DestroyWindow(window);
@@ -73,8 +105,8 @@ int main(int argc, char* argv[]) {
     float vertices[] = {
         // positions        // texture coords
         -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,  // top left
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,  // top right
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        1.0f,  1.0f, 0.0f, 1.0f, 1.0f,  // top right
+        1.0f, -1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f   // bottom left
     };
     
@@ -133,19 +165,42 @@ int main(int argc, char* argv[]) {
                 }
                 else if (e.key.keysym.sym == SDLK_1) {
                     // Switch to shader 1
-                    glDeleteProgram(shaderProgram);
-                    shaderProgram = loadShaders("shaders/shader1/vertex.glsl", "shaders/shader1/fragment.glsl");
+                    currentVertexPath = "shaders/shader1/vertex.glsl";
+                    currentFragmentPath = "shaders/shader1/fragment.glsl";
+                    shaderProgram = reloadCurrentShader(shaderProgram);
                 }
                 else if (e.key.keysym.sym == SDLK_2) {
                     // Switch to shader 2
-                    glDeleteProgram(shaderProgram);
-                    shaderProgram = loadShaders("shaders/shader2/vertex.glsl", "shaders/shader2/fragment.glsl");
+                    currentVertexPath = "shaders/shader2/vertex.glsl";
+                    currentFragmentPath = "shaders/shader2/fragment.glsl";
+                    shaderProgram = reloadCurrentShader(shaderProgram);
+                }
+                else if (e.key.keysym.sym == SDLK_r) {
+                    // Reload current shader
+                    shaderProgram = reloadCurrentShader(shaderProgram);
+                    
+                    // Update attribute locations after reload
+                    posAttrib = glGetAttribLocation(shaderProgram, "aPosition");
+                    texAttrib = glGetAttribLocation(shaderProgram, "aTexCoord");
+                    
+                    // Rebind VAO
+                    glBindVertexArray(VAO);
+                    
+                    // Update vertex attribute pointers
+                    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+                    glEnableVertexAttribArray(posAttrib);
+                    
+                    glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+                    glEnableVertexAttribArray(texAttrib);
+                    
+                    // Unbind VAO
+                    glBindVertexArray(0);
                 }
             }
         }
         
         // Clear the screen
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(1.f, 1.f, 1.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
         
         // Use the shader program
@@ -168,7 +223,6 @@ int main(int argc, char* argv[]) {
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
-    
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);
     SDL_Quit();
