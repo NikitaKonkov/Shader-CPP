@@ -1,7 +1,39 @@
 #include "../include/shader_manager.h"
 #include "../include/shadertoy_utils.h"
-#include "../include/shader_loader.h"
 
+#include "../include/includes.h"
+
+
+// Function to load shader code from a file
+std::string loadShaderFromFile(const std::string& filePath) {
+    std::string shaderCode;
+    std::ifstream shaderFile;
+    
+    // Ensure ifstream objects can throw exceptions
+    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    
+    try {
+        // Open file
+        shaderFile.open(filePath);
+        std::stringstream shaderStream;
+        
+        // Read file's buffer contents into stream
+        shaderStream << shaderFile.rdbuf();
+        
+        // Close file
+        shaderFile.close();
+        
+        // Convert stream into string
+        shaderCode = shaderStream.str();
+    }
+    catch (std::ifstream::failure& e) {
+        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << filePath << std::endl;
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return "";
+    }
+    
+    return shaderCode;
+}
 // Window dimensions
 const int WINDOW_WIDTH = 1440;
 const int WINDOW_HEIGHT = 720;
